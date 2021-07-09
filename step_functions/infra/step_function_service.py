@@ -11,34 +11,46 @@ class StepFunctionService:
 
         fail = StepFunctionService.create_fail_state(stack)
 
-        # Task 1
-        first_lambda_job = sfn_tasks.LambdaInvoke(
-            scope=stack,
-            id="Invoke 1st Lambda",
-            lambda_function=first_lambda,
-            output_path='$.Payload'
-        )
+        submit_job = sfn_tasks.LambdaInvoke(stack, "Submit Job",
+                                            lambda_function=first_lambda,
+                                            # Lambda's result is in the attribute `Payload`
+                                            output_path="$.Payload"
+                                            )
 
-        # Task 2
-        second_lambda_job = sfn_tasks.LambdaInvoke(
-            scope=stack,
-            id="Invoke 2nd Lambda",
-            lambda_function=second_lambda,
-            output_path='$.Payload'
-        )
+        wait_x = sfn.Wait(stack, "Wait X Seconds",
+                          time=sfn.WaitTime.seconds_path("$.waitSeconds")
+                          )
 
-        definition = StepFunctionService.create_definition(
-            stack=stack,
-            first_lambda_job=first_lambda,
-            second_lambda_job=second_lambda)
+        get_status = sfn_tasks.LambdaInvoke(stack, "Get Job Status",
+                                            lambda_function=second_lambda,
+                                            # Pass just the field named "guid" into the Lambda, put the
+                                            # Lambda's result in a field called "status" in the response
+                                            output_path="$.Payload"
+                                            )
 
-        sfn.StateMachine(
-            stack, "StateMachine",
-            id="My State Machine",
-            definition=definition,
-            timeout=core.Duration.seconds(30),
-        )
+        job_failed = sfn.Fail(stack, "Job Failed",
+                              cause="AWS Batch Job Failed",
+                              error="DescribeJob returned FAILED"
+                              )
 
+        final_status = sfn_tasks.LambdaInvoke(stack, "Get Final Job Status",
+                                              lambda_function=second_lambda,
+                                              # Use "guid" field as input
+                                              output_path="$.Payload"
+                                              )
+
+        # definition = submit_job.next(wait_x).next(get_status).next(sfn.Choice(stack, "Job Complete?").when(sfn.Condition.string_equals(
+        #     "$.status", "FAILED"), job_failed).when(sfn.Condition.string_equals("$.status", "SUCCEEDED"), final_status).otherwise(wait_x))
+
+        definition = submit_job.next(get_status).next(
+            sfn.Choice(stack, "Job Complete?")
+            .when(sfn.Condition.string_equals(
+                  "$.status", "FAILED"), job_failed).when(sfn.Condition.string_equals("$.status", "SUCCEEDED"), final_status).otherwise(wait_x))
+
+        sfn.StateMachine(stack, "StateMachine",
+                         definition=definition,
+                         timeout=core.Duration.seconds(30)
+                         )
 
     @staticmethod
     def create_fail_state(stack):

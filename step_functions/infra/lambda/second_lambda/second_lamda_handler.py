@@ -5,8 +5,11 @@ def handler(event, context):
     print('[second lambda] payload request: {}'.format(json.dumps(event)))
     return {
         'statusCode': 200,
+        'Seconds': 10,
+        'waitSeconds': 10,
+        'status': 'SUCCESS',
         'headers': {
             'Content-Type': 'text/plain'
         },
-        'body': 'Hello, CDK! You have hit {}\n'.format(event['path'])
+        'body': 'Hello, CDK! You have hit {}\n'.format(event['ExecutedBy'])
     }

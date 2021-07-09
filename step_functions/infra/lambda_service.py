@@ -13,10 +13,10 @@ class LambdaService:
         _lambda = aws_lambda.Function(scope=scope,
                                       id="first_lambda_function",
                                       function_name="first_lambda_function",
-                                      handler='lambda.first_lambda_handler.handler',
+                                      handler='first_lamda_handler.handler',
                                       runtime=aws_lambda.Runtime.PYTHON_3_7,
                                       code=aws_lambda.Code.asset(
-                                          'step_functions/infra/lambda/second_lambda'),
+                                          'step_functions/infra/lambda/first_lambda'),
                                       role=execution_role,
                                       timeout=cdk.Duration.seconds(25)
                                       )
@@ -28,10 +28,10 @@ class LambdaService:
         _lambda = aws_lambda.Function(scope=scope,
                                       id="second_lambda_function",
                                       function_name="second_lambda_function",
-                                      handler='lambda.second_lambda_handler.handler',
+                                      handler='second_lamda_handler.handler',
                                       runtime=aws_lambda.Runtime.PYTHON_3_7,
                                       code=aws_lambda.Code.asset(
-                                          'step_functions/infra/lambda/first_lambda'),
+                                          'step_functions/infra/lambda/second_lambda'),
                                       role=execution_role,
                                       timeout=cdk.Duration.seconds(25)
                                       )
