@@ -5,6 +5,7 @@ def handler(event, context):
     print('[first lambda] payload request: {}'.format(json.dumps(event)))
     return {
         'statusCode': 200,
+        'status': event['status'],
         'headers': {
             'Content-Type': 'text/plain'
         },

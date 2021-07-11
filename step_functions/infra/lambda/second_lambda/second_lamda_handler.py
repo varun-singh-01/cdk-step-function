@@ -7,9 +7,11 @@ def handler(event, context):
         'statusCode': 200,
         'Seconds': 10,
         'waitSeconds': 10,
-        'status': 'SUCCESS',
+        'status': event['status'],
         'headers': {
             'Content-Type': 'text/plain'
         },
-        'body': 'Hello, CDK! You have hit {}\n'.format(event['ExecutedBy'])
+        'body': 'Hello, CDK! You have hit {}\n'.format(event['ExecutedBy']),
+        'ExecutedBy': event['ExecutedBy']
+
     }
