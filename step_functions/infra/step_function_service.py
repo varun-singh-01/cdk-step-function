@@ -39,9 +39,6 @@ class StepFunctionService:
                                               output_path="$.Payload"
                                               )
 
-        # definition = submit_job.next(wait_x).next(get_status).next(sfn.Choice(stack, "Job Complete?").when(sfn.Condition.string_equals(
-        #     "$.status", "FAILED"), job_failed).when(sfn.Condition.string_equals("$.status", "SUCCEEDED"), final_status).otherwise(wait_x))
-
         definition = submit_job.next(get_status).next(
             sfn.Choice(stack, "Job Complete?")
             .when(sfn.Condition.string_equals(
@@ -49,7 +46,7 @@ class StepFunctionService:
 
         sfn.StateMachine(stack, "StateMachine",
                          definition=definition,
-                         timeout=core.Duration.seconds(30)
+                         timeout=core.Duration.seconds(180)
                          )
 
     @staticmethod
